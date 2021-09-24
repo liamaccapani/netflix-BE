@@ -1,8 +1,9 @@
 import createHttpError from "http-errors";
 import express from "express";
 import uniqid from "uniqid";
+import multer from "multer";
 
-import { getMedias, saveMedias} from "../utilities/fs-tools.js";
+import { getMedias, saveMedias, saveCoverPicture} from "../utilities/fs-tools.js";
 
 const mediasRouter = express.Router()
 
@@ -117,8 +118,21 @@ mediasRouter.post("/:mediaId/reviews", async(req, res, next) => {
     }
 })
 
-
 // POST for POSTER
+mediasRouter.post("/mediaId/upload", multer().single("mediaCover"), async(req, res, next) => {
+    try {
+        const { originalname, buffer } = req.file
+        const extension = extname(originalname)
+        const fileName = `${req.params.mediaId}${extension}`
+        const link = `http://localhost:3001/${fileName}`
+        req.file = link
+        saveCoverPicture(fileName, buffer)
+        
+        res.send("OK")
+    } catch (error) {
+        next(error)
+    }
+})
 
 // PUT/:id
 mediasRouter.put("/:mediaId", async(req, res, next) => {

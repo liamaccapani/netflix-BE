@@ -22,7 +22,10 @@ server.use("/medias", mediasRouter)
 // console.table(listEndpoints)
 
 // ************** ERROR HANDLERS
-
+server.use(badRequest)
+server.use(forbidden)
+server.use(notFound)
+server.use(serverError)
 
 
 
