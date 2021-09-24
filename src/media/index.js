@@ -3,7 +3,6 @@ import express from "express";
 import uniqid from "uniqid";
 
 import { getMedias, saveMedias} from "../utilities/fs-tools.js";
-import { ResultWithContext } from "express-validator/src/chain";
 
 const mediasRouter = express.Router()
 
@@ -18,7 +17,7 @@ mediasRouter.get("/", async(req, res, next) => {
     }
 })
 
-// GET single
+// GET single media
 mediasRouter.get("/:mediaId", async(req, res, next) => {
     try {
       const medias = await getMedias()
@@ -33,15 +32,15 @@ mediasRouter.get("/:mediaId", async(req, res, next) => {
     }
 })
 
-// GET single media + list of REVIEWS
+//  GET single media + list of REVIEWS
 mediasRouter.get("/:mediaId/reviews", async(req, res, next)=> {
     try {
       const medias = await getMedias()
       const singleMedia = medias.find(media => media.imdbID === req.params.mediaId)  
       if(singleMedia) {
-          const reviews = singleMedia.reviews
+          const mediaReviews = media.reviews
           
-          res.send(reviews)
+          res.send(mediaReviews)
       } else {
           next(createHttpError(404), `No media with id ${req.params.mediaId}`)
       } 
@@ -50,28 +49,29 @@ mediasRouter.get("/:mediaId/reviews", async(req, res, next)=> {
     }
 })
 
-// GET single + single REVIEW
-mediasRouter.get("/:mediaId/reviews/:reviewId", async(req, res, next)=> {
+// GET single media + single of REVIEW
+mediasRouter.get("/:mediaId/reviews/:reviewId", async(req, res, next) => {
     try {
-      const medias = await getMedias()
-      const singleMedia = medias.find(media => media.imdbID === req.params.mediaId)  
-      if(singleMedia){
-          const reviews = singleMedia.reviews
-          if(reviews){
-              const review = reviews.find(review => review._id === req.params.reviewId)
-              
-              if(review){
-                res.render(review)
-              }
-          }
-      } else {
-          next(createHttpError(404), `No media with id ${req.params.mediaId}`)
-      } 
-    } catch (error) {
-       next(error) 
-    }
+        const medias = await getMedias()
+        const singleMedia = medias.find(media => media.imdbID === req.params.mediaId)  
+        
+        if(singleMedia){
+            const reviews = singleMedia.reviews
+            
+            if(reviews){
+                const review = reviews.find(review => review._id === req.params.reviewId)
+                
+                if(review){
+                  res.render(review)
+                }
+            }
+        } else {
+            next(createHttpError(404), `No media with id ${req.params.mediaId}`)
+        } 
+      } catch (error) {
+         next(error) 
+      }
 })
-
 // POST media
 mediasRouter.post("/", async(req, res, next) => {
     try {
