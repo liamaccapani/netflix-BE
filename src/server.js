@@ -3,15 +3,17 @@ import cors from "cors";
 import listEndpoints from "express-list-endpoints";
 import mediasRouter from "./media/index.js";
 import { badRequest, forbidden, notFound, serverError } from "./errorHandlers.js";
+import { publicFolder } from "./utilities/fs-tools.js";
 
 const corsOptions = []
 const PORT = 3001
 const server = express()
 
+
 // ************** GLOBAL
 server.use(cors(corsOptions))
 server.use(express.json())
-
+server.use(express.static(publicFolder));
 
 
 
@@ -32,4 +34,4 @@ server.use(serverError)
 
 
 
-server.listen(PORT, () => console.log(`Hi bitch 💅 running on port ${PORT}`))
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`))

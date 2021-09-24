@@ -33,7 +33,7 @@ mediasRouter.get("/:mediaId", async(req, res, next) => {
     }
 })
 
-//  GET single media + list of REVIEWS
+// GET single media + list of REVIEWS
 mediasRouter.get("/:mediaId/reviews", async(req, res, next)=> {
     try {
       const medias = await getMedias()
