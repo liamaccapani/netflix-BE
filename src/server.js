@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import listEndpoints from "express-list-endpoints";
 import mediasRouter from "./media/index.js";
+import { badRequest, forbidden, notFound, serverError } from "./errorHandlers.js";
 
 const corsOptions = []
 const PORT = 3001
