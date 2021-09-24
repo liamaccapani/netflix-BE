@@ -38,9 +38,9 @@ mediasRouter.get("/:mediaId/reviews", async(req, res, next)=> {
       const medias = await getMedias()
       const singleMedia = medias.find(media => media.imdbID === req.params.mediaId)  
       if(singleMedia) {
-          const mediaReviews = media.reviews
+          const reviews = singleMedia.reviews
           
-          res.send(mediaReviews)
+          res.send(reviews)
       } else {
           next(createHttpError(404), `No media with id ${req.params.mediaId}`)
       } 
@@ -60,9 +60,8 @@ mediasRouter.get("/:mediaId/reviews/:reviewId", async(req, res, next) => {
             
             if(reviews){
                 const review = reviews.find(review => review._id === req.params.reviewId)
-                
                 if(review){
-                  res.render(review)
+                    res.send(review)
                 }
             }
         } else {
@@ -72,6 +71,7 @@ mediasRouter.get("/:mediaId/reviews/:reviewId", async(req, res, next) => {
          next(error) 
       }
 })
+
 // POST media
 mediasRouter.post("/", async(req, res, next) => {
     try {
@@ -159,6 +159,24 @@ mediasRouter.delete("/:mediaId", async(req, res, next) => {
 })
 
 // DELETE for REVIEWS
+mediasRouter.delete("/:mediaId/reviews/:reviewId", async(req, res, next) => {
+    try {
+        const medias = await getMedias()
+        const singleMedia = medias.find(media => media.imdbID === req.params.mediaId)
+
+        if(singleMedia){
+            const reviews = singleMedia.reviews
+            const remainingReviews = reviews.filter(review => review._id !== req.params.reviewId)
+            singleMedia.reviews = remainingReviews
+            await saveMedias(medias)
+            res.status(204).send()
+        } else {
+            next(createHttpError(404), `No media with id ${req.params.mediaId}`)
+        }
+    } catch (error) {
+        next(error)
+    }
+})
 
 // PDF
 

@@ -19,7 +19,7 @@ server.use("/medias", mediasRouter)
 
 
 
-console.table(listEndpoints)
+// console.table(listEndpoints)
 
 // ************** ERROR HANDLERS
 
