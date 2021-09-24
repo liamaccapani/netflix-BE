@@ -127,7 +127,7 @@ mediasRouter.post("/mediaId/upload", multer().single("mediaCover"), async(req, r
         const link = `http://localhost:3001/${fileName}`
         req.file = link
         saveCoverPicture(fileName, buffer)
-        
+
         res.send("OK")
     } catch (error) {
         next(error)
