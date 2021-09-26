@@ -11,5 +11,5 @@ export const getMedias = () => readJSON(mediaJSON)
 export const saveMedias = content => writeJSON(mediaJSON, content)
 
 // **** FILE UPLOAD
-export const publicFolder = join(process.cwd(), "./public/images/mediaCovers")
-export const saveCoverPicture = (name, bufferContent) => writeFile(join(publicFolder, name), bufferContent)
+const publicFolder = join(process.cwd(), "./public/images/posters")
+export const savePosterPicture = (name, bufferContent) => writeFile(join(publicFolder, name), bufferContent)

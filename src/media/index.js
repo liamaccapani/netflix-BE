@@ -6,7 +6,7 @@ import { extname } from "path";
 import { getPDFReadabaleStream } from "../utilities/pdfDownload.js";
 import { mediasValidator, reviewsValidator } from "./validation.js";
 import { validationResult } from "express-validator";
-import { getMedias, saveMedias, saveCoverPicture } from "../utilities/fs-tools.js";
+import { getMedias, saveMedias, savePosterPicture } from "../utilities/fs-tools.js";
 import { pipeline } from "stream";
 
 const mediasRouter = express.Router();
@@ -171,14 +171,14 @@ mediasRouter.post("/:mediaId/reviews", reviewsValidator, async (req, res, next) 
 );
 
 // POST for POSTER
-// mediasRouter.post("/mediaId/upload", multer().single("mediaCover"), async(req, res, next) => {
+// mediasRouter.post("/mediaId/upload", multer().single("poster"), async(req, res, next) => {
 //     try {
 //         const { originalname, buffer } = req.file
 //         const extension = extname(originalname)
 //         const fileName = `${req.params.mediaId}${extension}`
 //         const link = `http://localhost:3001/${fileName}`
 //         req.file = link
-//         saveCoverPicture(fileName, buffer)
+//         savePosterPicture(fileName, buffer)
 
 //         res.send("OK")
 //     } catch (error) {
