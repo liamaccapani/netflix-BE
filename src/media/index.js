@@ -6,11 +6,7 @@ import { extname } from "path";
 import { getPDFReadabaleStream } from "../utilities/pdfDownload.js";
 import { mediasValidator, reviewsValidator } from "./validation.js";
 import { validationResult } from "express-validator";
-import {
-  getMedias,
-  saveMedias,
-  saveCoverPicture,
-} from "../utilities/fs-tools.js";
+import { getMedias, saveMedias, saveCoverPicture } from "../utilities/fs-tools.js";
 import { pipeline } from "stream";
 
 const mediasRouter = express.Router();
