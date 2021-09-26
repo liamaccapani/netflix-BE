@@ -4,7 +4,8 @@ import uniqid from "uniqid";
 import multer from "multer";
 import { extname } from "path";
 import { getPDFReadabaleStream } from "../utilities/pdfDownload.js";
-
+import { mediasValidator, reviewsValidator } from "./validation.js";
+import { validationResult } from "express-validator";
 import {
   getMedias,
   saveMedias,
@@ -14,7 +15,7 @@ import { pipeline } from "stream";
 
 const mediasRouter = express.Router();
 
-// GET list
+// GET list --> add filter for serach?
 mediasRouter.get("/", async (req, res, next) => {
   try {
     const medias = await getMedias();
@@ -88,7 +89,7 @@ mediasRouter.get("/:mediaId/reviews/:reviewId", async (req, res, next) => {
   }
 });
 
-// PDF
+// PDF (add reviews + poster img in pdf file!)
 mediasRouter.get("/:mediaId/PDF", async (req, res, next) => {
   try {
     const medias = await getMedias();
@@ -96,15 +97,15 @@ mediasRouter.get("/:mediaId/PDF", async (req, res, next) => {
       (media) => media.imdbID === req.params.mediaId
     );
     if (singleMedia) {
-      res.setHeader("Content-Disposition", "attachment; filename=media.pdf")
-      const source = getPDFReadabaleStream(singleMedia)
-      const destination = res
+      res.setHeader("Content-Disposition", "attachment; filename=media.pdf");
+      const source = getPDFReadabaleStream(singleMedia);
+      const destination = res;
 
       pipeline(source, destination, (err) => {
-          if(err){
-              next(err)
-          }
-      })
+        if (err) {
+          next(err);
+        }
+      });
     } else {
       next(createHttpError(404), `No media with id ${req.params.mediaId}`);
     }
@@ -114,51 +115,64 @@ mediasRouter.get("/:mediaId/PDF", async (req, res, next) => {
 });
 
 // POST media
-mediasRouter.post("/", async (req, res, next) => {
-  try {
-    const newMedia = {
-      ...req.body,
-      imdbID: uniqid(),
-      reviews: [],
-      createdAt: new Date(),
-    };
+mediasRouter.post("/", mediasValidator, async (req, res, next) => {
+  const errorsList = validationResult(req);
 
-    const medias = await getMedias();
-    medias.push(newMedia);
+  if (!errorsList.isEmpty()) {
+    next(createHttpError(400, { errorsList }));
+  } else {
+    try {
+      const newMedia = {
+        ...req.body,
+        imdbID: uniqid(),
+        reviews: [],
+        createdAt: new Date(),
+      };
 
-    await saveMedias(medias);
+      const medias = await getMedias();
+      medias.push(newMedia);
 
-    res.status(201).send(newMedia);
-  } catch (error) {
-    next(error);
+      await saveMedias(medias);
+
+      res.status(201).send(newMedia);
+    } catch (error) {
+      next(error);
+    }
   }
 });
 
 // POST for REVIEWS
-mediasRouter.post("/:mediaId/reviews", async (req, res, next) => {
-  try {
-    const medias = await getMedias();
-    const singleMedia = medias.find(
-      (media) => media.imdbID === req.params.mediaId
-    );
+mediasRouter.post("/:mediaId/reviews", reviewsValidator, async (req, res, next) => {
+    const errorsList = validationResult(req);
 
-    if (singleMedia) {
-      const reviews = singleMedia.reviews;
-      const review = {
-        ...req.body,
-        _id: uniqid(),
-        elementId: singleMedia.imdbID,
-        createdAt: new Date(),
-      };
+    if (!errorsList.isEmpty()) {
+      next(createHttpError(400), { errorsList });
+    } else {
+      try {
+        const medias = await getMedias();
+        const singleMedia = medias.find(
+          (media) => media.imdbID === req.params.mediaId
+        );
 
-      reviews.push(review);
-      await saveMedias(medias);
-      res.status(201).send(review);
+        if (singleMedia) {
+          const reviews = singleMedia.reviews;
+          const review = {
+            ...req.body,
+            _id: uniqid(),
+            elementId: singleMedia.imdbID,
+            createdAt: new Date(),
+          };
+
+          reviews.push(review);
+          await saveMedias(medias);
+          res.status(201).send(review);
+        }
+      } catch (error) {
+        next(error);
+      }
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 // POST for POSTER
 // mediasRouter.post("/mediaId/upload", multer().single("mediaCover"), async(req, res, next) => {
@@ -177,29 +191,35 @@ mediasRouter.post("/:mediaId/reviews", async (req, res, next) => {
 // })
 
 // PUT/:id
-mediasRouter.put("/:mediaId", async (req, res, next) => {
-  try {
-    const medias = await getMedias();
-    const mediaIndex = medias.findIndex(
-      (media) => media.imdbID === req.params.mediaId
-    );
-    if (mediaIndex !== -1) {
-      const previousMedia = medias[mediaIndex];
-      const updatedMedia = {
-        ...previousMedia,
-        ...req.body,
-        updatedAt: new Date(),
-      };
+mediasRouter.put("/:mediaId", mediasValidator, async (req, res, next) => {
+  const errorsList = validationResult(req);
 
-      medias[mediaIndex] = updatedMedia;
+  if (!errorsList.isEmpty()) {
+    next(createHttpError(400), { errorsList });
+  } else {
+    try {
+      const medias = await getMedias();
+      const mediaIndex = medias.findIndex(
+        (media) => media.imdbID === req.params.mediaId
+      );
+      if (mediaIndex !== -1) {
+        const previousMedia = medias[mediaIndex];
+        const updatedMedia = {
+          ...previousMedia,
+          ...req.body,
+          updatedAt: new Date(),
+        };
 
-      await saveMedias(medias);
-      res.send(updatedMedia);
-    } else {
-      next(createHttpError(400), `Bad Request, my dear`);
+        medias[mediaIndex] = updatedMedia;
+
+        await saveMedias(medias);
+        res.send(updatedMedia);
+      } else {
+        next(createHttpError(400), `Bad Request, my dear`);
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
 });
 
